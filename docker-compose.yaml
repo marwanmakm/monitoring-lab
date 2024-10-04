@@ -1,0 +1,89 @@
+services:
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./configs/prometheus.yml:/etc/prometheus/prometheus.yml"
+    networks:
+      - localprom
+
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    networks:
+      - localprom
+    ports:
+      - 9100:9100
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
+    ports:
+      - "3000:3000"
+    networks:
+      - localprom
+
+  loki:
+    container_name: loki
+    image: grafana/loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - localprom
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail
+    volumes:
+      - ./logs:/var/log
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - localprom
+
+  alloy:
+    container_name: alloy
+    image: grafana/alloy
+    ports:
+      - "12347:12345"
+      - "12348:12348"
+      - "6832:6832"
+      - "55679:55679"
+    volumes:
+      - "./configs/config.alloy:/etc/alloy/config.alloy"
+    command: [
+      "run",
+      "--server.http.listen-addr=0.0.0.0:12345",
+      "--stability.level=public-preview",
+      "/etc/alloy/config.alloy",
+    ]
+
+networks:
+  localprom:
+    driver: bridge
