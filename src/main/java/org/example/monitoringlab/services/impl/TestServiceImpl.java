@@ -23,7 +23,11 @@ public class TestServiceImpl implements TestService {
       randomValue = -randomValue;
     }
 
+    int lastDigitValue = randomValue % 10;
+
     log.info("Random number: {}", randomValue);
+    log.info("Last digit: {}", lastDigitValue);
+
     return Integer.toString(randomValue);
   }
 }
