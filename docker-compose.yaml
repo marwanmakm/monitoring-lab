@@ -81,6 +81,18 @@ services:
       "/etc/alloy/config.alloy",
     ]
 
+  tempo:
+    container_name: tempo
+    image: grafana/tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - "./configs/tempo.yml:/etc/tempo.yaml"
+      - "./tmp/tempo:/var/tempo"
+    ports:
+      - "4318:4318" # otlp http
+    networks:
+      - localprom
+
 networks:
   localprom:
     driver: bridge
