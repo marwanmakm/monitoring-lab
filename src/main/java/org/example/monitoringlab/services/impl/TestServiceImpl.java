@@ -15,7 +15,7 @@ public class TestServiceImpl implements TestService {
    * @return a random integer number each time that this method is called
    */
   @Override
-  public String generateRandomNumber() {
+  public Integer generateRandomNumber() {
     RandomGenerator randomGenerator = new Random();
     OptionalInt optRandomValue = randomGenerator.ints(1).findFirst();
     int randomValue = optRandomValue.orElse(-1);
@@ -28,6 +28,6 @@ public class TestServiceImpl implements TestService {
     log.info("Random number: {}", randomValue);
     log.info("Last digit: {}", lastDigitValue);
 
-    return Integer.toString(randomValue);
+    return randomValue;
   }
 }
